@@ -26,6 +26,10 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     overflow: hidden;
+    -webkit-animation: fadein 5s; /* Safari and Chrome */
+    -moz-animation: fadein 5s; /* Firefox */
+    -ms-animation: fadein 5s; /* Internet Explorer */
+    -o-animation: fadein 5s; /* Opera */
     /*background: -webkit-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
     background: -o-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
     background: -ms-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
@@ -56,3 +60,13 @@ body {
     top: 0px;
     background-size: cover;
 }
+
+@keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
+/* Firefox */
+@-moz-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
+/* Safari and Chrome */
+@-webkit-keyframes {from { opacity: 0; } to { opacity: 1; }}
+/* Internet Explorer */
+@-ms-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
+/* Opera */
+@-o-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
