@@ -1,6 +1,20 @@
 body {
     margin: 0px;
 }
+
+.reviewsmast {
+    min-height: 30rem;
+    height: 100vh;
+    position: relative;
+    display: table;
+    width: 100%;
+    background: url(../img/minimalist-pencils-foto-garage-ag-161525-unsplash.jpg);
+    background-position: center 75%;;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+}
+
 .masthead {
     min-height: 30rem;
     height: 100vh;
@@ -25,4 +39,15 @@ body {
     padding-top: 30px;
     font-weight: 450;
     font-style: italic;
+}
+
+.menu {
+    background: url(../img/menu_icon.png);
+    display: inline;
+    position: absolute;
+    float: right;
+    height: 100px;
+    width: 100px;
+    top: 0px;
+    background-size: cover;
 }
