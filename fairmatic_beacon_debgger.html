@@ -1,0 +1,70 @@
+<html>
+<script>
+​
+	function draw_markings(canvas, zero_adjust, end_adjust, markings, height_adjust, color_name) {
+​
+		var context = canvas.getContext('2d');
+		context.beginPath();
+		markings.forEach(function(mark){
+			x = ((mark - zero_adjust) / (end_adjust - zero_adjust)) * canvas.width
+			y = height_adjust
+		    context.arc(x, y, canvas.height * 0.007, 0, 2 * Math.PI, false);
+		    context.fillStyle = color_name;
+		    context.fill();
+		    context.stroke();
+		})
+		x0 = ((markings[0] - zero_adjust) / (end_adjust - zero_adjust)) * canvas.width
+		xn = ((markings[markings.length -1] - zero_adjust) / (end_adjust - zero_adjust)) * canvas.width
+		context.moveTo(x0, height_adjust)
+		context.lineTo(xn, height_adjust)
+		context.stroke();
+	}
+​
+	function showTripMetadata(data) {
+		canvas = document.getElementById("beacon_data")
+		var context = canvas.getContext('2d');
+		context.clearRect(0, 0, canvas.width, canvas.height);
+​
+		trip_15_adjust = ((data.tripEndTimestamp - data.tripStartTimestamp)  * 0.15)
+		zero_adjust = data.tripStartTimestamp - (trip_15_adjust * 3)
+		end_adjust = data.tripEndTimestamp + (trip_15_adjust * 10)
+		// Draw trip with 70% window
+		trip_plot_marking = [
+			data.tripStartTimestamp, 
+			data.tripStartTimestamp + trip_15_adjust, 
+			data.tripEndTimestamp - trip_15_adjust, 
+			data.tripEndTimestamp
+		]
+		draw_markings(canvas, zero_adjust, end_adjust, trip_plot_marking, canvas.height * 0.1, 'red')
+​
+		draw_markings(canvas, zero_adjust, end_adjust, data.beaconScanInfo.scanTimestamps, canvas.height * 0.2, 'green')
+​
+		beacon_i = 0
+		data.beaconScanInfo.beacons.forEach(function(beacon) {
+			draw_markings(canvas, zero_adjust, end_adjust, beacon.discoveryInfo.flatMap(x => x["ts"]), canvas.height * (0.4 + beacon_i*0.1), 'blue')
+			beacon_i = beacon_i+ 1
+		})
+		draw_markings(canvas, zero_adjust, end_adjust, data.errors.flatMap(x => x["ts"]), canvas.height * 0.3, 'orange')
+		canvas.addEventListener('change', (event) => {
+			console.log(event)
+		});
+	}
+​
+​
+	function addData() {
+		inputBox = document.getElementById("tripdata")
+		tripJson = JSON.parse(inputBox.value)
+​
+		showTripMetadata(tripJson)
+	}
+​
+</script>
+​
+<p>Enter the trip metadata payload in the below textfield.</p>
+<input type="textarea" id="tripdata">
+<input type="submit" value="Submit" onclick="addData()">
+​
+<canvas id="beacon_data" width="2000" height="1200" style="display: block;" onchange="canvasChanged()">
+</canvas>
+​
+</html>
