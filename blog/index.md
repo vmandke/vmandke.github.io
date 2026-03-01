@@ -14,7 +14,7 @@ title: Blog
     {% else %}
       {% for post in blog_posts %}
       <div style="margin: 0.6rem 0;">
-        <a href="{{ post.url }}">{{ post.title }}</a>
+        <a href="{{ post.url }}" style="text-decoration:none; color:inherit;">{{ post.title }}</a>
         {% if post.date %}<span style="color:#888;"> — {{ post.date | date: "%b %-d, %Y" }}</span>{% endif %}
       </div>
       {% endfor %}

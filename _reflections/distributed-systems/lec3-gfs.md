@@ -6,9 +6,8 @@ category: distributed-systems
 ---
 
 
-# Google File System (GFS) — Lecture Notes
 **Course:** MIT 6.584 — Distributed Systems | **Lecture:** 3  
-**Reference:** [YouTube Lecture](https://www.youtube.com/watch?v=6ETFk1-53qU) | [GFS Paper — Ghemawat et al., SOSP 2003](https://pdos.csail.mit.edu/6.824/)
+**Reference:** [YouTube Lecture](https://www.youtube.com/watch?v=6ETFk1-53qU) 
 
 ---
 
