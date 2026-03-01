@@ -1,80 +1,261 @@
+/* ─── Fonts ──────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&display=swap');
+
+/* ─── Reset ─────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-    margin: 0px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: #1a1a1a;
 }
 
-.reviewsmast {
-    min-height: 30rem;
-    height: 100vh;
-    position: relative;
-    display: table;
-    width: 100%;
-    background: url(../img/minimalist-pencils-foto-garage-ag-161525-unsplash.jpg);
-    background-position: center 75%;;
-    background-repeat: no-repeat;
-    background-size: cover;
-    overflow: hidden;
+/* ─── Fixed Background ───────────────────────────── */
+.bg-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: url('/img/minimalist-pencils-foto-garage-ag-161525-unsplash.jpg');
+  background-position: center 75%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  animation: fadein 3s ease;
 }
 
+/* ─── Scrolling content layer ────────────────────── */
+.page-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* ─── Homepage masthead ──────────────────────────── */
 .masthead {
-    min-height: 30rem;
-    height: 100vh;
-    position: relative;
-    display: table;
-    width: 100%;
-    background: url(../img/minimalist-pencils-foto-garage-ag-161525-unsplash.jpg);
-    background-position: center 75%;
-    background-repeat: no-repeat;
-    background-size: cover;
-    overflow: hidden;
-    -webkit-animation: fadein 3s; /* Safari and Chrome */
-    -moz-animation: fadein 3s; /* Firefox */
-    -ms-animation: fadein 3s; /* Internet Explorer */
-    -o-animation: fadein 3s; /* Opera */
-    /*background: -webkit-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
-    background: -o-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
-    background: -ms-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
-    background: -moz-linear-gradient(300deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);
-    background: linear-gradient(150deg, rgb(180, 163, 156) 0%, rgb(249, 240, 237) 100%);*/
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
 }
+
 .titlename {
-    font-size: 88px;
-    font-weight: 700;
-    text-align: center;
-    padding-top: 10%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 88px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.1;
 }
 
 .subtitle {
-    font-size: 20px;
-    padding-top: 30px;
-    font-weight: 450;
-    font-style: italic;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  font-style: italic;
+  text-align: center;
+  color: #333;
 }
 
-.menu {
-    background: url(../img/menu_icon.png);
-    display: inline;
-    position: absolute;
-    float: right;
-    height: 50px;
-    width: 50px;
-    top: 0px;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    top: 10px;
-    left: 10px;
-    -webkit-animation: fadein 3s; /* Safari and Chrome */
-    -moz-animation: fadein 3s; /* Firefox */
-    -ms-animation: fadein 3s; /* Internet Explorer */
-    -o-animation: fadein 3s; /* Opera */
+/* ─── Posts panel (homepage) ─────────────────────── */
+.posts {
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 1.75rem 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 72rem;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  margin-top: 2.5rem;
 }
 
-@keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
-/* Firefox */
-@-moz-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
-/* Safari and Chrome */
-@-webkit-keyframes {from { opacity: 0; } to { opacity: 1; }}
-/* Internet Explorer */
-@-ms-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
-/* Opera */
-@-o-keyframes fadein {from { opacity: 0; } to { opacity: 1; }}
+.posts h2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #555;
+  margin-bottom: 0.85rem;
+}
+
+.posts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.posts ul li {
+  padding: 0.3rem 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.posts ul li a {
+  color: #2a2a2a;
+  text-decoration: none;
+}
+
+.posts ul li a:hover { text-decoration: underline; }
+
+/* ─── Post / page card (for rendered md files) ───── */
+.post-card {
+  max-width: 72rem;
+  width: 90%;
+  margin: 4rem auto;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 3.5rem 5rem;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  line-height: 1.85;
+}
+
+.post-card h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 2.5rem;
+  font-style: italic;
+}
+
+/* ─── Post body typography ───────────────────────── */
+.post-body {
+  font-size: 17px;
+}
+
+.post-body h1,
+.post-body h2,
+.post-body h3,
+.post-body h4 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  margin: 2.5rem 0 0.85rem;
+  line-height: 1.3;
+  color: #111;
+}
+
+.post-body h1 { font-size: 2rem; }
+.post-body h2 { font-size: 1.6rem; }
+.post-body h3 { font-size: 1.3rem; }
+.post-body h4 { font-size: 1.1rem; }
+
+.post-body p {
+  margin-bottom: 1.2rem;
+  font-weight: 300;
+}
+
+.post-body strong { font-weight: 500; }
+
+.post-body em { font-style: italic; }
+
+.post-body ul, .post-body ol {
+  padding-left: 1.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.post-body li {
+  margin-bottom: 0.5rem;
+  font-weight: 300;
+}
+
+.post-body code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.84em;
+  background: rgba(240, 236, 232, 0.8);
+  padding: 0.15em 0.45em;
+  border-radius: 3px;
+}
+
+.post-body pre {
+  background: rgba(240, 236, 232, 0.85);
+  padding: 1.25rem 1.5rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1.2rem;
+  font-size: 0.88rem;
+}
+
+.post-body pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.post-body blockquote {
+  border-left: 3px solid #c8b8a8;
+  margin: 1.5rem 0;
+  padding: 0.6rem 1.25rem;
+  color: #555;
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+.post-body hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 2.5rem 0;
+}
+
+.post-body a {
+  color: #5a3e2b;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.post-body a:hover { color: #3a2010; }
+
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
+}
+
+.post-body th, .post-body td {
+  border: 1px solid #ddd;
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+}
+
+.post-body th {
+  background: rgba(245, 240, 236, 0.8);
+  font-weight: 500;
+}
+
+/* ─── Back link ──────────────────────────────────── */
+.back-link {
+  display: inline-block;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: #999;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.back-link:hover { color: #444; }
+
+/* ─── Animations ─────────────────────────────────── */
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@-moz-keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@-webkit-keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@-ms-keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+/* ─── Responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .titlename { font-size: 52px; }
+  .subtitle { font-size: 18px; }
+  .posts { min-width: unset; width: 90%; }
+  .post-card { width: 95%; padding: 2rem 1.5rem; }
+}

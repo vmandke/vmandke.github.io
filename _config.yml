@@ -1,0 +1,29 @@
+title: Vinaya Mandke
+description: Ramblings of an eternal learner
+
+sass:
+  quiet_deps: true
+
+plugins:
+  - jekyll-feed
+
+exclude:
+  - README.md
+  - scripts/
+  - vendor/
+
+collections:
+  reflections:
+    output: true
+    permalink: /reflections/:path/
+
+defaults:
+  - scope:
+      path: "reflections"
+      type: "reflections"
+    values:
+      layout: "post"
+  - scope:
+      path: "pages-*.md"
+    values:
+      layout: "category"

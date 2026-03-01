@@ -1,17 +1,34 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>vmandke's localhost</title> 
+---
+layout: default
+---
+<div class="masthead">
+  <div class="titlename">Vinaya Mandke</div>
+  <div class="subtitle">Ramblings of an eternal learner</div>
 
-    <!-- Custom CSS -->
-    <link href="css/minimalist.css" rel="stylesheet">
-</head>
-<body>
-    <div id="maindiv" class="masthead">
+  <div class="posts">
+    {% assign categories = site.reflections
+       | where_exp: "p", "p.path != 'index.md'"
+       | map: 'category'
+       | uniq
+       | compact %}
+
+    {% for category in categories %}
+    <div class="category-block">
+      <h2><a href="/reflections/{{ category }}/">{{ category | capitalize | replace: "-", " " }}</a></h2>
+      <ul>
+        {% assign cat_posts = site.reflections
+           | where: "category", category
+           | sort: "date" | reverse
+           | limit: 5 %}
+        {% for post in cat_posts %}
+          <li>
+            <a href="{{ post.url }}">{{ post.title }}</a>
+            {% if post.date %} — {{ post.date | date: "%b %-d, %Y" }}{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
     </div>
-    <div class="menu"></div>
+    {% endfor %}
+  </div>
 
-    <!-- Javascript File -->
-    <script src="js/minimalist.js"></script>
-</body>
-</html>
+</div>
