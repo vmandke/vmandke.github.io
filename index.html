@@ -5,30 +5,14 @@ layout: default
   <div class="titlename">Vinaya Mandke</div>
   <div class="subtitle">Ramblings of an eternal learner</div>
 
-  <div class="posts">
-    {% assign categories = site.reflections
-       | where_exp: "p", "p.path != 'index.md'"
-       | map: 'category'
-       | uniq
-       | compact %}
-
-    {% for category in categories %}
-    <div class="category-block">
-      <h2><a href="/reflections/{{ category }}/">{{ category | capitalize | replace: "-", " " }}</a></h2>
-      <ul>
-        {% assign cat_posts = site.reflections
-           | where: "category", category
-           | sort: "date" | reverse
-           | limit: 5 %}
-        {% for post in cat_posts %}
-          <li>
-            <a href="{{ post.url }}">{{ post.title }}</a>
-            {% if post.date %} — {{ post.date | date: "%b %-d, %Y" }}{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
+  <div style="display:flex; gap:2rem; width:90%; max-width:72rem; margin-top:2.5rem; flex-wrap:wrap;">
+    <div class="section-card" style="flex:1; min-width:200px; margin-top:0; cursor:pointer;" onclick="window.location='/blog/'">
+      <h1 class="section-card-title">Blog</h1>
+      <div class="section-card-desc">Essays, ideas, and implementations that took their time</div>
     </div>
-    {% endfor %}
+    <div class="section-card" style="flex:1; min-width:200px; margin-top:0; cursor:pointer;" onclick="window.location='/reflections/'">
+      <h1 class="section-card-title">Reflections</h1>
+      <div class="section-card-desc">Explorations, imperfectly journaled</div>
+    </div>
   </div>
-
 </div>
