@@ -1,158 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2026-03-24T17:13:12+00:00</updated><id>/feed.xml</id><title type="html">Vinaya Mandke</title><subtitle>Ramblings of an eternal learner</subtitle><entry><title type="html">Implementing MapReduce</title><link href="/2025/01/01/implementing-mapreduce.html" rel="alternate" type="text/html" title="Implementing MapReduce" /><published>2025-01-01T00:00:00+00:00</published><updated>2025-01-01T00:00:00+00:00</updated><id>/2025/01/01/implementing-mapreduce</id><content type="html" xml:base="/2025/01/01/implementing-mapreduce.html"><![CDATA[<p>Below is the process I followed to create a simple, working Proof of Concept (POC) for MapReduce, inspired by the blueprint outlined in the…</p>
-
-<hr />
-
-<h3 id="implementing-mapreduce">Implementing Map Reduce</h3>
-
-<p>Below is the process I followed to create a simple, working Proof of Concept (POC) for MapReduce, inspired by the blueprint outlined in the seminal paper.</p>
-
-<p>Let’s start with one of the simplest problems: counting the number of records in a file. You might ask, “Why even bother with this? Won’t <code class="language-plaintext highlighter-rouge">wc</code> do the job?” However, bear with me. Counting lines is simple enough and easily testable. If you find the system outputting 20 when there should have been 100, that’s a bug — and we can fix it! :)</p>
-
-<p>Begin with cloning the repository</p>
-
-<p>Repo: <a href="https://github.com/vmandke/mapred/tree/main" class="markup--anchor markup--p-anchor" data-href="https://github.com/vmandke/mapred/tree/main" rel="nofollow noopener" target="_blank">https://github.com/vmandke/mapred</a></p>
-
-<pre><code class="language-graf">git clone git@github.com:vmandke/mapred.git
-export MAPRED_ROOT=/Users/vmandke/Projects/mapred
-</code></pre>
-
-<p>We start with a sufficiently large data file. For this purpose, I got the file from…</p>
-
-<pre><code class="language-graf">wget -P $MAPRED_ROOT/data/ https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Books.jsonl
-</code></pre>
-
-<p>First, let’s boot up the driver and a few workers. Run the following in a different tab.<br />
-<strong>Note</strong>: Ensure the driver starts on port 5001.</p>
-
-<pre><code class="language-graf">PYTHONPATH=$MAPRED_ROOT python $MAPRED_ROOT/mapred/runner.py driver --port 5001
-PYTHONPATH=$MAPRED_ROOT python $MAPRED_ROOT/mapred/runner.py worker --driver-uri http://127.0.0.1:5001 --port 5005
-PYTHONPATH=$MAPRED_ROOT python $MAPRED_ROOT/mapred/runner.py worker --driver-uri http://127.0.0.1:5001 --port 5006
-PYTHONPATH=$MAPRED_ROOT python $MAPRED_ROOT/mapred/runner.py worker --driver-uri http://127.0.0.1:5001 --port 5007
-</code></pre>
-
-<p>Navigate to <a href="http://127.0.0.1:5001/get_work_status" class="markup--anchor markup--p-anchor" data-href="http://127.0.0.1:5001/get_work_status" rel="nofollow noopener noopener" target="_blank">http://127.0.0.1:5001/get_work_status</a><br />
-This will auto-reload as the job progresses.</p>
-
-<figure id="36b1" class="graf graf--figure graf--layoutOutsetCenter graf-after--p">
-<img src="/assets/posts/3d000b9a378746f0932646668aed87f1e4680a98.png" class="graf-image" data-image-id="1*f_e3LKT0pWEGtOVqTB7-RA.png" data-width="2724" data-height="1162" data-is-featured="true" />
-</figure>
-
-<p>So, we have 3 workers running, waiting for tasks, and a Driver. Please note that I am using “Driver” as opposed to the “Master” convention followed in the 2004 paper. How the world changes! :)</p>
-
-<hr />
-
-<p>We are in the Python world, so under <code class="language-plaintext highlighter-rouge">lib</code> is where we would interact with the system. Assume we have a huge 20GB file in the <code class="language-plaintext highlighter-rouge">/data</code> folder. For simplicity, we want to calculate the number of lines in the entire file. All you need to do is use <code class="language-plaintext highlighter-rouge">client.py</code>.</p>
-
-<pre><code class="language-graf">import json
-import os
-
-from lib import submit_mapred_job_and_wait
-from mapred.store.parser import JSONRecordParser
-from mapred.store.file_fetcher import FileFetcher
-
-
-def count_records():
-    driver_uri = "http://127.0.0.1:5001"
-
-    data_path = os.path.join(os.path.dirname(__file__), "data", "Books.jsonl")
-    parser = JSONRecordParser(record_delimiter="\n", data_parser=json.loads)
-    fetcher = FileFetcher(data_path=data_path, parser=parser)
-    response = submit_mapred_job_and_wait(
-        driver_uri=driver_uri,
-        mapper="lambda x: 1",
-        reducer="lambda x: [sum(x)]",
-        fetcher=fetcher,
-        m=100,
-        r=20,
-    )
-    print(response)
-
-
-if __name__ == "__main__":
-    count_records()
-</code></pre>
-
-<figure id="e462" class="graf graf--figure graf--layoutOutsetCenter graf-after--pre">
-<img src="/assets/posts/2bed019d9baa895d6791bddffba8c9fe48c76a33.png" class="graf-image" data-image-id="1*l_9X5lgHfnL6udieP4Iueg.png" data-width="2646" data-height="1718" />
-</figure>
-
-<p>The <code class="language-plaintext highlighter-rouge">client.py</code> is waiting for results and should display <code class="language-plaintext highlighter-rouge">[29475453]</code> after a few minutes. The <code class="language-plaintext highlighter-rouge">wc</code> command also gives us the same result.</p>
-
-<hr />
-
-<figure id="c327" class="graf graf--figure graf--leading">
-<img src="/assets/posts/85849b9a5c47f6664cd5cbf2345efaa04adf649e.png" class="graf-image" data-image-id="1*yRXuOYyFEbA-UycLTapCLw.png" data-width="902" data-height="388" />
-</figure>
-
-<p>The client interacts with the Driver via the <code class="language-plaintext highlighter-rouge">lib</code>. The Driver proceeds to break the huge file into start/end offsets for M tasks. Each of these offsets represents a MAP task. The Map tasks are then combined into Reduce tasks, and finally, there is a final task that reduces the Reduce tasks.</p>
-
-<figure id="f5ba" class="graf graf--figure graf-after--p">
-<img src="/assets/posts/0aec85ecc83245dba0f6c150d74bd685fb3f8c14.png" class="graf-image" data-image-id="1*gXvA8o6h8aPbPtw9IMau-Q.png" data-width="1130" data-height="434" />
-</figure>
-
-<p><em>The Map tasks and Reduce tasks are sent to the workers, while the final task is reduced on the Driver. The results of the Map tasks are stored locally on the workers, so the Reduce tasks need to fetch the results from the workers.</em></p>
-
-<p>A Reduce task can be assigned to any idle worker, so it needs its parent Map task’s worker to be alive and responding in order to fetch the intermediate results. The diagram above is only schematic; a worker can be assigned a Reduce task with Map tasks from different workers. This means that if a worker dies, and any of the child MAP tasks are not finished, all such MAP tasks need to be marked as pending. Lets try doing this.</p>
-
-<blockquote>
-  <p><strong><em>Note:</em></strong> <em>For the purposes of this POC, we are cleaning up all Reduce tasks as well. This can be easily fixed with a simple condition.</em></p>
-</blockquote>
-
-<figure id="3f1e" class="graf graf--figure graf--layoutOutsetCenter graf-after--blockquote">
-<img src="/assets/posts/d7f95af67e5b59bea0947654093a9a9c0acf07fe.png" class="graf-image" data-image-id="1*FL-XbDdXXSHBXK4J_Oxzig.png" data-width="2642" data-height="1800" />
-</figure>
-
-<hr />
-<figure id="3e32" class="graf graf--figure graf--layoutOutsetCenter graf-after--figure">
-<img src="/assets/posts/368c16dea2c996b36dfb3e02815200fc91f8367c.png" class="graf-image" data-image-id="1*VOSX5NvWSEOH80xrfwlNhw.png" data-width="2580" data-height="1840" />
-</figure>
-
-<hr />
-<figure id="9373" class="graf graf--figure graf--layoutOutsetCenter graf-after--figure">
-<img src="/assets/posts/2bbba5b3547f8ded2cfd2835d15afadafdc97540.png" class="graf-image" data-image-id="1*l8k1ta8D8n9QR4jlLmOqMA.png" data-width="2640" data-height="1790" />
-</figure>
-
-<p><em>After a long wait we see the Driver go into IDLE state, and the client poller return the result.</em></p>
-
-<hr />
-
-<p>The code is designed to be easily extensible to support various types of fetchers. Fetcher containers are passed to both the driver and workers, allowing for easy addition of new fetchers. The driver uses <code class="language-plaintext highlighter-rouge">get_chunks_metadata</code> to divide the MapReduce process into multiple MAP tasks, which are then grouped into subsequent REDUCE tasks. The final REDUCE task is handled by the driver.</p>
-
-<pre><code class="language-graf">class Fetcher(ABC):
-    def __init__(self, data_path: Optional[str], parser: Optional[RecordParser]):
-        self.data_path = data_path
-        self.parser = parser
-
-    @abstractmethod
-    def get_chunks_metadata(self, num_chunks: int):
-        pass
-
-    @abstractmethod
-    def get_records_from_metadata(self, chunk_metadata: Any):
-        pass
-
-    def pickle(self):
-        return base64.b64encode(pickle.dumps(self)).decode("utf-8")
-</code></pre>
-
-<hr />
-
-<p>When a worker starts, it must register with the driver. This process is known as the worker “registering with the driver.” Afterward, the worker is required to send periodic heartbeats to the driver. If the driver does not receive a heartbeat within 30 seconds, the worker will be considered inactive, and all of its tasks, including completed ones, will be reassigned as we saw earlier.</p>
-
-<p>The driver assigns any IDLE worker a pending task, ensuring that all of its parent tasks are complete and the task is currently in the PENDING state. This is managed by periodically calling the <code class="language-plaintext highlighter-rouge">rebalance</code> function on the driver. For this POC, the worker communicates task status, worker status, and other information solely through heartbeats.</p>
-
-<p>Finally, once all tasks are complete, the results can be collated, and the driver can be marked as IDLE again.</p>
-
-<hr />
-
-<h3 id="references">References</h3>
-
-<p><a href="https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf" class="markup--anchor markup--p-anchor" data-href="https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf" rel="nofollow noopener" target="_blank">https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf</a></p>
-
-<p><a href="https://github.com/vmandke/mapred" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://github.com/vmandke/mapred" title="https://github.com/vmandke/mapred"><strong>GitHub MapReduce POC Implementation</strong><br /></a></p>
-
-<hr />
-<p>Originally Published on <a href="https://medium.com/@vmandke">Medium</a> on Jan 01, 2025.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Below is the process I followed to create a simple, working Proof of Concept (POC) for MapReduce, inspired by the blueprint outlined in the…]]></summary></entry><entry><title type="html">Implementing Kademlia - A DHT journey</title><link href="/2024/05/12/implementing-kademlia-a-dht-journey.html" rel="alternate" type="text/html" title="Implementing Kademlia - A DHT journey" /><published>2024-05-12T00:00:00+00:00</published><updated>2024-05-12T00:00:00+00:00</updated><id>/2024/05/12/implementing-kademlia-a-dht-journey</id><content type="html" xml:base="/2024/05/12/implementing-kademlia-a-dht-journey.html"><![CDATA[<p>Kademlia is a resilient and tolerant distributed hash table and network implementation. A lot of the tolerance and resilience depend on…</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Implementing Kademlia - A DHT journey — Vinaya Mandke</title>
+  <link href="/css/minimalist.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Fraunces:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg-fixed"></div>
+  <div class="page-content">
+    <article class="post-card">
+  
+    <a class="back-link" href="/blog/">← Blog</a>
+  
+  <h1>Implementing Kademlia - A DHT journey</h1>
+  
+  <p class="post-meta">May 12, 2024</p>
+  
+  <div class="post-body">
+    <p>Kademlia is a resilient and tolerant distributed hash table and network implementation. A lot of the tolerance and resilience depend on…</p>
 
 <hr />
 
@@ -417,90 +284,11 @@ get_xor(A, get_xor(B, C)[0])
 </ol>
 
 <hr />
-<p>Originally Published on <a href="https://medium.com/@vmandke">Medium</a> on May 12, 2024.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Kademlia is a resilient and tolerant distributed hash table and network implementation. A lot of the tolerance and resilience depend on…]]></summary></entry><entry><title type="html">ABC of CQRS</title><link href="/2022/07/09/abc-of-cqrs.html" rel="alternate" type="text/html" title="ABC of CQRS" /><published>2022-07-09T00:00:00+00:00</published><updated>2022-07-09T00:00:00+00:00</updated><id>/2022/07/09/abc-of-cqrs</id><content type="html" xml:base="/2022/07/09/abc-of-cqrs.html"><![CDATA[<p><strong><em>An attempt in python</em></strong></p>
+<p>Originally Published on <a href="https://medium.com/@vmandke">Medium</a> on May 12, 2024.</p>
 
-<blockquote>
-  <p>Please Note: This was a submission for a coding challenge in September of 2018. The requirement was just to build a parking lot API, however as I was working on AKKA and CQRS at that time, I was inspired to submit a minimal, and definitely lacking cqrs-esque implementation. It has been well over stipulated time to not reveal the problem statement, and the said <code class="language-plaintext highlighter-rouge">company</code> should change their problem statement if they haven’t done so as yet.</p>
-</blockquote>
-
-<p>Watching this might be useful, before jumping into the code:
-<a href="https://www.youtube.com/watch?v=7erJ1DV_Tlo">https://www.youtube.com/watch?v=7erJ1DV_Tlo</a></p>
-
-<p>More references: <a href="https://doc.akka.io/docs/akka/current/general/actor-systems.html">https://doc.akka.io/docs/akka/current/general/actor-systems.html</a></p>
-
-<h4 id="an-actor">An Actor</h4>
-
-<p>Think of a system with 3 processes. A read-side, write-side, and a client context. It helps abstracting out and saying: <code class="language-plaintext highlighter-rouge">an actor is a thread</code>.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Actor</span><span class="p">:</span>
-    <span class="o">--</span> <span class="nf">set_in_queue</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_queue</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">get_in_queue</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">register_receive</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">command_fn</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">non_blocking_get</span><span class="p">(</span><span class="n">pipe</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">blocking_get</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">put_on_sender</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sender_queue</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">receive</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">start</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-</code></pre></div></div>
-
-<h4 id="readsidelot">ReadSide/Lot</h4>
-
-<p>Read side actors generally implement the read / view commands</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ReadSideLot</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-    <span class="o">--</span> <span class="nf">receive</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
-    <span class="o">--</span> <span class="nf">park</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">car</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">leave</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">car</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">get_status</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">get_registration_numbers_for_cars_with_colour</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">get_slot_numbers_for_cars_with_colour</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">get_slot_number_for_registration_number</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">rno</span><span class="p">)</span>
-</code></pre></div></div>
-
-<h4 id="writesidelot">WriteSide/Lot</h4>
-
-<p>Write side actors implement the create, update, modify commands. Which eventually get reflected to it’s mirror.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">WriteSideLot</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-    <span class="o">--</span> <span class="nf">send_read_side_event</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">park</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">rno</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
-    <span class="o">--</span> <span class="nf">leave</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
-</code></pre></div></div>
-
-<h4 id="registries">Registries</h4>
-
-<p>Registry keeps track of all the actors in the system. Only write side actors get created and read side are eventually mirrored. What ever action write-side takes is sent to its mirror read-side for eventual consistency. I think of this as a actor index system, with its own read-side reflection.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Registry</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
-    <span class="o">--</span> <span class="n">spawn</span>
-    <span class="o">--</span> <span class="n">ask_forward</span>
-    <span class="o">--</span> <span class="n">kill_actor</span>
-</code></pre></div></div>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">WriteSideParkingLotRegistry</span><span class="p">(</span><span class="n">Registry</span><span class="p">):</span>
-    <span class="o">--</span> <span class="n">create_parking_lot</span>
-</code></pre></div></div>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ReadSideParkingLotRegistry</span><span class="p">(</span><span class="n">Registry</span><span class="p">):</span>
-    <span class="o">--</span> <span class="n">create_parking_lot</span>
-</code></pre></div></div>
-
-<h4 id="gluecommandexecuter">Glue/CommandExecuter</h4>
-
-<p>This is just an additional helper to pass commands onto the read side / write side processes, and individual actors.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CommandExecuter</span><span class="p">():</span>
-    <span class="o">--</span> <span class="n">add_query</span>
-    <span class="o">--</span> <span class="n">add_command</span>
-    <span class="o">--</span> <span class="n">get_command_args_and_id</span>
-    <span class="o">--</span> <span class="n">send_to_sender</span>
-    <span class="o">--</span> <span class="n">execute_command_line</span>
-</code></pre></div></div>
-
-<h4 id="tada">Tada!</h4>
-
-<p>Maybe now it makes more sense to read this test.
-The test shows both ways to execute / trigger the read and write side, using the <code class="language-plaintext highlighter-rouge">executer</code> or <code class="language-plaintext highlighter-rouge">queue</code></p>
-
-<h2><img src="https://cdn-images-1.medium.com/max/800/1*-7k7dKKqvqPqwFsZ-vsGig.png" alt="Test screenshot" /></h2>
-<p><em>find the test here: <a href="https://github.com/vmandke/abc_cqrs/blob/main/tests/test_command_executer.py">https://github.com/vmandke/abc_cqrs/blob/main/tests/test_command_executer.py</a></em></p>
-
-<p>Find the code here: <a href="https://github.com/vmandke/abc_cqrs">https://github.com/vmandke/abc_cqrs</a></p>
-
-<p><strong><em>Happy Reading!</em></strong></p>
-
-<hr />
-<p>Originally Published on <a href="https://medium.com/@vmandke">Medium</a> on July 9, 2022.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[An attempt in python]]></summary></entry></feed>
+  </div>
+</article>
+  </div>
+  <script src="/js/minimalist.js"></script>
+</body>
+</html>
