@@ -268,7 +268,7 @@ body {
 }
 
 .section-card {
-  cursor: pointer;  
+  cursor: pointer;
   position: relative;
   z-index: 10;
   background: rgba(255, 255, 255, 0.82);
@@ -291,4 +291,15 @@ body {
   letter-spacing: 0.12em;
   color: #555;
   margin-bottom: 0.85rem;
+}
+
+.graf--layoutOutsetCenter {
+  width: 100% !important;
+  margin-left: 0 !important;
+}
+
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
